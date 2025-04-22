@@ -88,7 +88,7 @@ const DICOMViewer = () => {
       <div className="flex gap-4 mt-4 justify-center">
         <button
           onClick={() => navigateImages('prev')}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
         >
           Anterior
         </button>
@@ -97,7 +97,7 @@ const DICOMViewer = () => {
         </span>
         <button
           onClick={() => navigateImages('next')}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
         >
           Siguiente
         </button>
