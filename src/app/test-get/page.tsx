@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { obtenerPacientes, Paciente } from '@/services/api';
 
-export default function Home() {
-    const router = useRouter();
+export default function TestGet() {
     const [pacientes, setPacientes] = useState<Paciente[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -30,29 +28,18 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-            <div className="pb-4 border-gray-200 border-b-2 flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-blue-600">expedientedigno</h1>
-          <button
-          onClick={() => router.push('/new-patient')}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center gap-2">
-            <span>+</span>
-            Upload New Study
-          </button>
-        </div>
+        <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <div className="bg-white shadow-sm rounded-lg p-6">
                     <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-2xl font-bold text-black">Sistema de Gestión de Pacientes</h1>
-                        <div className="space-x-4">
-                            <button
-                                onClick={cargarPacientes}
-                                disabled={loading}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300 transition-colors"
-                            >
-                                {loading ? 'Actualizando...' : 'Actualizar Lista'}
-                            </button>
-                        </div>
+                        <h1 className="text-2xl font-bold text-black">Lista de Pacientes</h1>
+                        <button
+                            onClick={cargarPacientes}
+                            disabled={loading}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+                        >
+                            {loading ? 'Cargando...' : 'Recargar'}
+                        </button>
                     </div>
 
                     {error && (
@@ -69,12 +56,6 @@ export default function Home() {
                     ) : pacientes.length === 0 ? (
                         <div className="text-center py-8">
                             <p className="text-gray-500">No hay pacientes registrados</p>
-                            <button
-                                onClick={() => router.push('/new-patient')}
-                                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                            >
-                                Registrar Primer Paciente
-                            </button>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -92,11 +73,7 @@ export default function Home() {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {pacientes.map((paciente, index) => (
-                                        <tr 
-                                            key={paciente.curp} 
-                                            className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors cursor-pointer`}
-                                            onClick={() => console.log('Paciente seleccionado:', paciente)}
-                                        >
+                                        <tr key={paciente.curp} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{paciente.curp}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{paciente.nombre}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{paciente.apellido}</td>
@@ -114,4 +91,4 @@ export default function Home() {
             </div>
         </div>
     );
-}
+} 
