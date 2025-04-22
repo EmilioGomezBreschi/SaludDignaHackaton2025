@@ -9,6 +9,7 @@ export default function Home() {
     const [pacientes, setPacientes] = useState<Paciente[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const cargarPacientes = async () => {
         try {
@@ -29,17 +30,23 @@ export default function Home() {
         cargarPacientes();
     }, []);
 
+    const pacientesFiltrados = pacientes.filter(paciente =>
+        paciente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        paciente.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        paciente.curp.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
             <div className="pb-4 border-gray-200 border-b-2 flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-blue-600">expedientedigno</h1>
-          <button
-          onClick={() => router.push('/new-patient')}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center gap-2">
-            <span>+</span>
-            Upload New Study
-          </button>
-        </div>
+                <h1 className="text-2xl font-bold text-blue-600">expedientedigno</h1>
+                <button
+                    onClick={() => router.push('/new-patient')}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center gap-2">
+                    <span>+</span>
+                    Upload New Study
+                </button>
+            </div>
             <div className="max-w-7xl mx-auto">
                 <div className="bg-white shadow-sm rounded-lg p-6">
                     <div className="flex justify-between items-center mb-6">
@@ -52,6 +59,33 @@ export default function Home() {
                             >
                                 {loading ? 'Actualizando...' : 'Actualizar Lista'}
                             </button>
+                        </div>
+                    </div>
+
+                    {/* Barra de búsqueda */}
+                    <div className="mb-6">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Buscar por nombre, apellido o CURP..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                            />
+                            <svg
+                                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                            </svg>
                         </div>
                     </div>
 
@@ -91,7 +125,7 @@ export default function Home() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {pacientes.map((paciente, index) => (
+                                    {pacientesFiltrados.map((paciente, index) => (
                                         <tr 
                                             key={paciente.curp} 
                                             className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors cursor-pointer`}
@@ -108,6 +142,11 @@ export default function Home() {
                                     ))}
                                 </tbody>
                             </table>
+                            {pacientesFiltrados.length === 0 && searchTerm && (
+                                <div className="text-center py-8">
+                                    <p className="text-gray-500">No se encontraron pacientes que coincidan con la búsqueda</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
