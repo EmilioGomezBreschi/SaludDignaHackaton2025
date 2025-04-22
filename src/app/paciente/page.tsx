@@ -1,4 +1,4 @@
-import DICOMViewer from "../Components/DICOMViewer";
+import DICOMViewer from "../../components/DICOMViewer";
 
 export default function Home() {
 	return (
