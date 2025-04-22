@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { obtenerPacientes, Paciente } from '@/services/api';
+import { obtenerPacientes, Paciente } from '../services/api';
 
 export default function Home() {
     const router = useRouter();
@@ -126,11 +126,11 @@ export default function Home() {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {pacientesFiltrados.map((paciente, index) => (
-                                        <tr 
+                                        <tr
                                             key={paciente.curp} 
                                             className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-gray-100 transition-colors cursor-pointer`}
-                                            onClick={() => console.log('Paciente seleccionado:', paciente)}
-                                        >
+                                            onClick={() => router.push(`/patient/${paciente.curp}`)}
+                                            >
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{paciente.curp}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{paciente.nombre}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{paciente.apellido}</td>

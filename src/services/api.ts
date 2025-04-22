@@ -47,3 +47,11 @@ export const crearPaciente = async (paciente: Paciente) => {
         throw error;
     }
 };
+
+export async function obtenerPacientePorCurp(curp: string | null): Promise<Paciente> {
+    const response = await fetch(`/api/pacientes/${curp}`);
+    if (!response.ok) {
+        throw new Error('Error al obtener el paciente');
+    }
+    return response.json();
+}
