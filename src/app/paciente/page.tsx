@@ -22,14 +22,6 @@ export default function Home() {
 			<main className="flex flex-row items-start gap-8 grow px-3 py-1">
         <div className="flex flex-col items-start justify-start h-full w-3/4 p-4 bg-gray-900">
           <DICOMViewer/>
-					<div className="flex flex-row space-x-3 items-end justify-end w-full rounded-lg mt-2">
-						<button className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out">
-							Zoom +
-						</button>
-						<button className="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-300 ease-in-out">
-							Zoom -
-						</button>
-					</div>
 				</div>
 				<div className="flex flex-col items-start justify-start w-1/4 bg-gray-800 h-full rounded-lg p-4">
 					<h2 className="text-xl font-semibold mb-2">Datos del paciente</h2>

@@ -1,87 +1,77 @@
+'use client';
+
 import { useEffect, useRef } from 'react';
-import * as cornerstone from 'cornerstone-core';
-import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
-import dicomParser from 'dicom-parser';
-
-// Configuración inicial de los loaders
-cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
-
-// Configurar codecs y web workers (necesario para Next.js)
-if (typeof window !== 'undefined') {
-  cornerstoneWADOImageLoader.webWorkerManager.initialize({
-    maxWebWorkers: navigator.hardwareConcurrency || 1,
-    startWebWorkersOnDemand: true,
-    taskConfiguration: {
-      decodeTask: {
-        initializeCodecsOnStartup: true,
-        usePDFJS: false,
-        strict: false,
-      },
-    },
-  });
-}
 
 const DICOMViewer = () => {
   const imageRef = useRef<HTMLDivElement>(null);
-  const zoomLevel = useRef<number>(1);
 
   useEffect(() => {
-    const element = imageRef.current;
-    
-    if (!element) return;
-
-    const enableAndLoadImage = async () => {
+    const initialize = async () => {
       try {
-        await cornerstone.enable(element);
-        
-        // Reemplaza esta URL con la ubicación de tu archivo DICOM
-        const imageId = 'wadouri:/tu-imagen.dcm';
-        
-        const image = await cornerstone.loadImage(imageId);
+        const cornerstone = (await import('cornerstone-core')).default;
+        const cornerstoneWADOImageLoader = (await import('cornerstone-wado-image-loader')).default;
+        const dicomParser = (await import('dicom-parser')).default;
+
+        // Configurar el cargador DICOM
+        cornerstoneWADOImageLoader.external.cornerstone = cornerstone as typeof import('cornerstone-core');
+        cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+
+        // Configurar el cargador
+        cornerstoneWADOImageLoader.configure({
+          beforeSend: (xhr) => {
+            // Configura encabezados o ajustes necesarios aquí
+          },
+        });
+
+        // Inicializar web workers
+        cornerstoneWADOImageLoader.webWorkerManager.initialize({
+          maxWebWorkers: navigator.hardwareConcurrency || 1,
+          startWebWorkersOnDemand: true,
+          taskConfiguration: {
+            decodeTask: {
+              initializeCodecsOnStartup: false,
+              usePDFJS: false,
+              strict: false,
+            },
+          },
+        });
+
+        const element = imageRef.current;
+        if (!element) return;
+
+        // Habilitar el elemento de visualización
+        cornerstone.enable(element);
+
+        // Cargar imagen (asegúrate de que el archivo esté en /public)
+        const imageId = 'wadouri:/image-00290.dcm'; // Cambia por tu archivo
+        const image = await cornerstone.loadAndCacheImage(imageId); // Usa loadAndCacheImage
         cornerstone.displayImage(element, image);
-        zoomLevel.current = 1;
       } catch (error) {
-        console.error('Error loading DICOM image:', error);
+        console.error('Error durante la inicialización:', error);
       }
     };
 
-    enableAndLoadImage();
+    initialize();
 
     return () => {
-      if (element) {
-        cornerstone.disable(element);
-      }
+      const cleanup = async () => {
+        const cornerstone = (await import('cornerstone-core')).default;
+        const element = imageRef.current;
+        if (element) cornerstone.disable(element);
+      };
+      cleanup();
     };
   }, []);
 
-  const handleZoom = (direction: 'in' | 'out') => {
-    const elements = cornerstone.getEnabledElements();
-    
-    elements.forEach(enabledElement => {
-      if (!enabledElement.element) return;
-      
-      direction === 'in' ? zoomLevel.current *= 1.2 : zoomLevel.current /= 1.2;
-      
-      const viewport = cornerstone.getViewport(enabledElement.element);
-      
-      if (viewport) {
-        cornerstone.setViewport(enabledElement.element, {
-          ...viewport,
-          scale: zoomLevel.current
-        });
-      }
-    });
-  };
-
   return (
     <div className="w-full h-full">
-      <div 
+      <div
         ref={imageRef}
         className="w-full h-full bg-gray-700"
         style={{ width: '100%', height: '500px' }}
       />
-      <div className="flex flex-row space-x-3 items-end justify-end w-full rounded-lg mt-2">
-        <button 
-          onClick={() => handleZoom('in')}
-          className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition
+    </div>
+  );
+};
+
+export default DICOMViewer;
