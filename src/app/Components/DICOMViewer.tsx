@@ -4,10 +4,21 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 const MIN_INDEX = 0;
 const MAX_INDEX = 360;
+type EnabledElement = {
+  element: HTMLDivElement;
+  // other properties can be added as needed
+};
 
 const DICOMViewer = () => {
   const imageRef = useRef<HTMLDivElement>(null);
   const cornerstoneRef = useRef<any>(null);
+
+  function getEnabledElements(): EnabledElement[] {
+    if (cornerstoneRef.current && typeof cornerstoneRef.current.getEnabledElements === 'function') {
+      return cornerstoneRef.current.getEnabledElements();
+    }
+    return [];
+  }
   const [currentIndex, setCurrentIndex] = useState<number>(290);
   const [isReady, setIsReady] = useState(false);
 
@@ -34,7 +45,10 @@ const DICOMViewer = () => {
 
       cornerstoneRef.current = cornerstone;
 
-      if (imageRef.current && !cornerstone.getEnabledElements().some(e => e.element === imageRef.current)) {
+      const enabledElements = Array.isArray(cornerstone.getEnabledElements && cornerstone.getEnabledElements())
+        ? cornerstone.getEnabledElements()
+        : [];
+      if (imageRef.current && Array.isArray(enabledElements) && !enabledElements.some((e: any) => e.element === imageRef.current)) {
         cornerstone.enable(imageRef.current);
       }
       setIsReady(true);

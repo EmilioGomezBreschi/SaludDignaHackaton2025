@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { crearPaciente, Paciente } from '@/services/api';
+import { crearPaciente, Paciente } from '../../services/api';
 
 export default function NewPatient() {
     const router = useRouter();

@@ -4,6 +4,10 @@ declare module 'cornerstone-core' {
     export function loadImage(imageId: string): Promise<any>;
     export function displayImage(element: HTMLElement, image: any): void;
     export function fitToWindow(element: HTMLElement): void;
+
+  export function getEnabledElements() {
+    throw new Error('Function not implemented.');
+  }
 }
 
 declare module 'cornerstone-tools' {
