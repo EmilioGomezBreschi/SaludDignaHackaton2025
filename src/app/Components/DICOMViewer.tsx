@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import cornerstone from "cornerstone-core";
 import cornerstoneWADOImageLoader from "cornerstone-wado-image-loader";
 import dicomParser from "dicom-parser";
-// 1️⃣ Importa cornerstone-math
 import cornerstoneMath from "cornerstone-math";
 import * as cornerstoneTools from "cornerstone-tools";
 import Hammer from "hammerjs";
@@ -96,10 +95,9 @@ const DICOMViewer = ({
     cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
     cornerstoneTools.external.cornerstone = cornerstone;
     cornerstoneTools.external.Hammer = Hammer;
-   // 2️⃣ Registrar cornerstoneMath como dependencia
-cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+    cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
 
-    // Inicializar web workers…
+    // Inicializar web workers
     try {
       cornerstoneWADOImageLoader.webWorkerManager.initialize({
         maxWebWorkers: navigator.hardwareConcurrency || 1,
@@ -112,7 +110,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
       if (!e.message?.includes("already initialized")) console.error(e);
     }
 
-    // Resto de la inicialización (enable, stack, herramientas, etc.)…
+    // Inicializar herramientas
     cornerstoneTools.init({ globalToolSyncEnabled: true, showSVGCursors: true });
     cornerstone.enable(element);
 
@@ -128,7 +126,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
       currentImageIdIndex: 0,
     });
 
-    // Registro de herramientas (solo la clase)
+    // Registro de herramientas
     cornerstoneTools.addTool(cornerstoneTools.PanTool);
     cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
     cornerstoneTools.addTool(cornerstoneTools.WwwcTool);
@@ -144,7 +142,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
     cornerstoneTools.setToolActive("Pan", { mouseButtonMask: 1 });
     cornerstoneTools.setToolActive("StackScrollMouseWheel", {});
 
-    // Carga imagen inicial…
+    // Carga imagen inicial
     cornerstone
       .loadAndCacheImage(ids[0])
       .then((image) => {
@@ -161,7 +159,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
     };
   }, []);
 
-  // Efecto para cambiar de imagen…
+  // Efecto para cambiar de imagen
   useEffect(() => {
     const element = imageRef.current;
     if (!element || !imageLoaded) return;

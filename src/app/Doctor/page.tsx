@@ -1,8 +1,12 @@
+// File: app/Doctor/page.tsx
 "use client";
 
-import DICOMViewer from "../Components/DICOMViewer";
-import { useState } from "react";
+import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import JSZip from 'jszip';
+
+// Carga dinámica para evitar SSR en el componente que usa `window`
+const DICOMViewer = dynamic(() => import('../Components/DICOMViewer'), { ssr: false });
 
 const MAX_INDEX = 7;
 const BASE_URL = "http://localhost:3000/Imagenes";
@@ -14,7 +18,7 @@ export default function Home() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const [newAnnotations, setNewAnnotations] = useState("");
-  const [previousAnnotations, setPreviousAnnotations] = useState("Tienes un cerebro inflamado y un tumor en el cerebro. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet, consectetur adipisicing elit.");
+  const [previousAnnotations, setPreviousAnnotations] = useState("Tienes un cerebro inflamado y un tumor en el cerebro. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.");
 
   const viewTypes = [
     { id: "axial", label: "Axial" },
@@ -41,68 +45,29 @@ export default function Home() {
     { name: "FreehandRoi", label: "ROI Manual" },
   ];
 
-  const getGridLayout = () => {
-    switch (viewCount) {
-      case 1:
-        return 'grid-cols-1';
-      case 2:
-        return 'grid-cols-2';
-      case 3:
-        return 'grid-cols-3';
-      case 4:
-        return 'grid-cols-2 grid-rows-2';
-      default:
-        return 'grid-cols-1';
-    }
-  };
-
-  const getViewerClass = (index: number) => {
-    switch (viewCount) {
-      case 4:
-        switch (index) {
-          case 0: return 'col-start-1 col-end-2 row-start-1 row-end-2';
-          case 1: return 'col-start-2 col-end-3 row-start-1 row-end-2';
-          case 2: return 'col-start-1 col-end-2 row-start-2 row-end-3';
-          case 3: return 'col-start-2 col-end-3 row-start-2 row-end-3';
-          default: return '';
-        }
-      case 3:
-        return 'col-span-1';
-      case 2:
-        return 'col-span-1';
-      default:
-        return 'col-span-1';
-    }
-  };
-
   const handleSaveAnnotations = async () => {
     if (!newAnnotations.trim()) return;
 
     try {
       const zip = new JSZip();
-      
-      // Agregar archivo de anotaciones
-      zip.file("anotaciones.txt", `Anotaciones anteriores:\n${previousAnnotations}\n\nNuevas anotaciones:\n${newAnnotations}\n\nFecha: ${new Date().toISOString()}\nÍndice de imagen: ${currentImageIndex}`);
+      zip.file(
+        "anotaciones.txt",
+        `Anotaciones anteriores:\n${previousAnnotations}\n\nNuevas anotaciones:\n${newAnnotations}\n\nFecha: ${new Date().toISOString()}\nÍndice de imagen: ${currentImageIndex}`
+      );
 
-      // Agregar archivos DICOM
       for (let i = 0; i <= MAX_INDEX; i++) {
         const response = await fetch(`${BASE_URL}/${i.toString().padStart(1, "0")}.dcm`);
         const blob = await response.blob();
         zip.file(`dicom_${i.toString().padStart(3, "0")}.dcm`, blob);
       }
 
-      // Generar el archivo ZIP
       const content = await zip.generateAsync({ type: "blob" });
-      
-      // Crear enlace para descargar
       const url = URL.createObjectURL(content);
       const a = document.createElement('a');
       a.href = url;
       a.download = `estudio_${new Date().toISOString().split('T')[0]}.zip`;
       document.body.appendChild(a);
       a.click();
-      
-      // Limpiar
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -121,14 +86,11 @@ export default function Home() {
         <div className="space-y-2">
           <h2 className="text-sm text-gray-400">Cantidad de visores</h2>
           <div className="flex flex-col gap-2">
-            {viewOptions.map((option) => (
+            {viewOptions.map(option => (
               <button
                 key={option.count}
                 onClick={() => setViewCount(option.count)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${viewCount === option.count
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${viewCount === option.count ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"}`}
               >
                 {option.label}
               </button>
@@ -140,14 +102,11 @@ export default function Home() {
         <div className="space-y-2">
           <h2 className="text-sm text-gray-400">Tipo de Corte</h2>
           <div className="flex flex-col gap-2">
-            {viewTypes.map((view) => (
+            {viewTypes.map(view => (
               <button
                 key={view.id}
                 onClick={() => setSelectedView(view.id)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${selectedView === view.id
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${selectedView === view.id ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"}`}
               >
                 {view.label}
               </button>
@@ -159,14 +118,11 @@ export default function Home() {
         <div className="space-y-2">
           <h2 className="text-sm text-gray-400">Herramientas</h2>
           <div className="flex flex-col gap-2">
-            {tools.map((tool) => (
+            {tools.map(tool => (
               <button
                 key={tool.name}
                 onClick={() => setActiveTool(tool.name)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${activeTool === tool.name
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${activeTool === tool.name ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"}`}
               >
                 {tool.label}
               </button>
@@ -177,10 +133,7 @@ export default function Home() {
         {/* Control de scroll */}
         <button
           onClick={() => setScrollEnabled(!scrollEnabled)}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${scrollEnabled
-            ? "bg-green-600 text-white"
-            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-            }`}
+          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${scrollEnabled ? "bg-green-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"}`}
         >
           {scrollEnabled ? "Scroll Activo" : "Scroll Inactivo"}
         </button>
@@ -201,6 +154,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+
 
         {/* Área de visores DICOM */}
         <div className="flex-1 p-4 bg-gray-800">
