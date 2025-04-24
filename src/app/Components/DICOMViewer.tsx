@@ -12,13 +12,41 @@ import Hammer from "hammerjs";
 
 const MIN_INDEX = 0;
 const MAX_INDEX = 360;
-const BASE_URL = "http://localhost:3000/series-00000";
+const BASE_URL = "http://localhost:3000/Imagenes";
 
 const DICOMViewer = () => {
   const imageRef = useRef<HTMLDivElement>(null);
   const [imageIds, setImageIds] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [activeTool, setActiveTool] = useState<string>("Pan");
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+
+  const tools = [
+    { name: "Pan", label: "Mover" },
+    { name: "Zoom", label: "Zoom" },
+    { name: "Wwwc", label: "Contraste" },
+    { name: "Length", label: "Medir" },
+    { name: "Angle", label: "Ángulo" },
+    { name: "Magnify", label: "Lupa" },
+    { name: "RectangleRoi", label: "Rectángulo" },
+    { name: "EllipticalRoi", label: "Elipse" },
+    { name: "FreehandRoi", label: "ROI Manual" },
+  ];
+
+  const handleToolChange = (toolName: string) => {
+    setActiveTool(toolName);
+    cornerstoneTools.setToolActive(toolName, { mouseButtonMask: 1 });
+  };
+
+  const toggleScroll = () => {
+    setScrollEnabled(!scrollEnabled);
+    if (!scrollEnabled) {
+      cornerstoneTools.setToolActive("StackScrollMouseWheel", {});
+    } else {
+      cornerstoneTools.setToolDisabled("StackScrollMouseWheel");
+    }
+  };
 
   useEffect(() => {
     const element = imageRef.current;
@@ -50,7 +78,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
     cornerstone.enable(element);
 
     const ids = Array.from({ length: MAX_INDEX + 1 }, (_, i) =>
-      `wadouri:${BASE_URL}/image-${i.toString().padStart(5, "0")}.dcm`
+      `wadouri:${BASE_URL}/${i.toString().padStart(1, "0")}.dcm`
     );
     setImageIds(ids);
 
@@ -66,12 +94,15 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
     cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
     cornerstoneTools.addTool(cornerstoneTools.WwwcTool);
     cornerstoneTools.addTool(cornerstoneTools.LengthTool);
+    cornerstoneTools.addTool(cornerstoneTools.AngleTool);
+    cornerstoneTools.addTool(cornerstoneTools.MagnifyTool);
+    cornerstoneTools.addTool(cornerstoneTools.RectangleRoiTool);
+    cornerstoneTools.addTool(cornerstoneTools.EllipticalRoiTool);
+    cornerstoneTools.addTool(cornerstoneTools.FreehandRoiTool);
     cornerstoneTools.addTool(cornerstoneTools.StackScrollMouseWheelTool);
 
-    // Activación
+    // Activación inicial
     cornerstoneTools.setToolActive("Pan", { mouseButtonMask: 1 });
-    cornerstoneTools.setToolActive("Zoom", { mouseButtonMask: 2 });
-    cornerstoneTools.setToolActive("Wwwc", { mouseButtonMask: 4 });
     cornerstoneTools.setToolActive("StackScrollMouseWheel", {});
 
     // Carga imagen inicial…
@@ -108,16 +139,57 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
   }, []);
 
   return (
-    <div className="w-full h-full">
-      <div ref={imageRef} className="w-full h-96 bg-black" />
-      <div className="flex justify-center gap-4 mt-4">
-        <button onClick={() => navigate("prev")} className="btn">
-          Anterior
-        </button>
-        <span className="text-white">{currentIndex.toString().padStart(8, "0")}</span>
-        <button onClick={() => navigate("next")} className="btn">
-          Siguiente
-        </button>
+    <div className="flex flex-col h-full bg-gray-800 rounded-lg overflow-hidden">
+      {/* Visor DICOM */}
+      <div ref={imageRef} className="flex-1 bg-black" />
+
+      {/* Controles */}
+      <div className="p-4 bg-gray-800 border-t border-gray-700">
+        {/* Herramientas */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {tools.map((tool) => (
+            <button
+              key={tool.name}
+              onClick={() => handleToolChange(tool.name)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTool === tool.name
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              {tool.label}
+            </button>
+          ))}
+          <button
+            onClick={toggleScroll}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              scrollEnabled
+                ? "bg-green-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            {scrollEnabled ? "Scroll Activo" : "Scroll Inactivo"}
+          </button>
+        </div>
+
+        {/* Navegación */}
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={() => navigate("prev")}
+            className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors"
+          >
+            Anterior
+          </button>
+          <span className="text-gray-300 font-mono">
+            {currentIndex.toString().padStart(3, "0")} / {MAX_INDEX}
+          </span>
+          <button
+            onClick={() => navigate("next")}
+            className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors"
+          >
+            Siguiente
+          </button>
+        </div>
       </div>
     </div>
   );
