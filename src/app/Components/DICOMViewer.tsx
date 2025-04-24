@@ -14,13 +14,31 @@ const MIN_INDEX = 0;
 const MAX_INDEX = 360;
 const BASE_URL = "http://localhost:3000/Imagenes";
 
-const DICOMViewer = () => {
+interface DICOMViewerProps {
+  showControls?: boolean;
+  onToolChange?: (tool: string) => void;
+  activeTool?: string;
+  currentImageIndex?: number;
+  onImageIndexChange?: (index: number) => void;
+  scrollEnabled?: boolean;
+  onScrollToggle?: () => void;
+}
+
+const DICOMViewer = ({
+  showControls = true,
+  onToolChange,
+  activeTool: externalActiveTool,
+  currentImageIndex: externalIndex,
+  onImageIndexChange,
+  scrollEnabled: externalScrollEnabled,
+  onScrollToggle
+}: DICOMViewerProps) => {
   const imageRef = useRef<HTMLDivElement>(null);
   const [imageIds, setImageIds] = useState<string[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(externalIndex || 0);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [activeTool, setActiveTool] = useState<string>("Pan");
-  const [scrollEnabled, setScrollEnabled] = useState(true);
+  const [activeTool, setActiveTool] = useState<string>(externalActiveTool || "Pan");
+  const [scrollEnabled, setScrollEnabled] = useState(externalScrollEnabled ?? true);
 
   const tools = [
     { name: "Pan", label: "Mover" },
@@ -36,17 +54,38 @@ const DICOMViewer = () => {
 
   const handleToolChange = (toolName: string) => {
     setActiveTool(toolName);
+    onToolChange?.(toolName);
     cornerstoneTools.setToolActive(toolName, { mouseButtonMask: 1 });
   };
 
   const toggleScroll = () => {
-    setScrollEnabled(!scrollEnabled);
-    if (!scrollEnabled) {
+    const newScrollState = !scrollEnabled;
+    setScrollEnabled(newScrollState);
+    onScrollToggle?.();
+    if (newScrollState) {
       cornerstoneTools.setToolActive("StackScrollMouseWheel", {});
     } else {
       cornerstoneTools.setToolDisabled("StackScrollMouseWheel");
     }
   };
+
+  useEffect(() => {
+    if (externalActiveTool && externalActiveTool !== activeTool) {
+      handleToolChange(externalActiveTool);
+    }
+  }, [externalActiveTool]);
+
+  useEffect(() => {
+    if (typeof externalScrollEnabled === 'boolean' && externalScrollEnabled !== scrollEnabled) {
+      setScrollEnabled(externalScrollEnabled);
+    }
+  }, [externalScrollEnabled]);
+
+  useEffect(() => {
+    if (typeof externalIndex === 'number' && externalIndex !== currentIndex) {
+      setCurrentIndex(externalIndex);
+    }
+  }, [externalIndex]);
 
   useEffect(() => {
     const element = imageRef.current;
@@ -133,64 +172,69 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
   }, [currentIndex, imageIds, imageLoaded]);
 
   const navigate = useCallback((dir: "next" | "prev") => {
-    setCurrentIndex((i) =>
-      Math.max(MIN_INDEX, Math.min(MAX_INDEX, dir === "next" ? i + 1 : i - 1))
+    const newIndex = Math.max(
+      MIN_INDEX,
+      Math.min(MAX_INDEX, dir === "next" ? currentIndex + 1 : currentIndex - 1)
     );
-  }, []);
+    setCurrentIndex(newIndex);
+    onImageIndexChange?.(newIndex);
+  }, [currentIndex, onImageIndexChange]);
 
   return (
-    <div className="flex flex-col h-full bg-gray-800 rounded-lg overflow-hidden">
+    <div className="h-full w-full bg-gray-800">
       {/* Visor DICOM */}
-      <div ref={imageRef} className="flex-1 bg-black" />
+      <div ref={imageRef} className="w-full h-full bg-black" />
 
       {/* Controles */}
-      <div className="p-4 bg-gray-800 border-t border-gray-700">
-        {/* Herramientas */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {tools.map((tool) => (
+      {showControls && (
+        <div className="p-2 md:p-4 bg-gray-800 border-t border-gray-700">
+          {/* Herramientas */}
+          <div className="flex flex-wrap gap-1 md:gap-2 mb-4">
+            {tools.map((tool) => (
+              <button
+                key={tool.name}
+                onClick={() => handleToolChange(tool.name)}
+                className={`px-2 md:px-4 py-1 md:py-2 rounded-md text-xs md:text-sm font-medium transition-colors cursor-pointer ${
+                  activeTool === tool.name
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                {tool.label}
+              </button>
+            ))}
             <button
-              key={tool.name}
-              onClick={() => handleToolChange(tool.name)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTool === tool.name
-                  ? "bg-blue-600 text-white"
+              onClick={toggleScroll}
+              className={`px-2 md:px-4 py-1 md:py-2 rounded-md text-xs md:text-sm font-medium transition-colors cursor-pointer ${
+                scrollEnabled
+                  ? "bg-green-600 text-white"
                   : "bg-gray-700 text-gray-300 hover:bg-gray-600"
               }`}
             >
-              {tool.label}
+              {scrollEnabled ? "Scroll Activo" : "Scroll Inactivo"}
             </button>
-          ))}
-          <button
-            onClick={toggleScroll}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              scrollEnabled
-                ? "bg-green-600 text-white"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-            }`}
-          >
-            {scrollEnabled ? "Scroll Activo" : "Scroll Inactivo"}
-          </button>
-        </div>
+          </div>
 
-        {/* Navegación */}
-        <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={() => navigate("prev")}
-            className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors"
-          >
-            Anterior
-          </button>
-          <span className="text-gray-300 font-mono">
-            {currentIndex.toString().padStart(3, "0")} / {MAX_INDEX}
-          </span>
-          <button
-            onClick={() => navigate("next")}
-            className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors"
-          >
-            Siguiente
-          </button>
+          {/* Navegación */}
+          <div className="flex items-center justify-center">
+            <button
+              onClick={() => navigate("prev")}
+              className="px-2 md:px-4 py-1 md:py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors text-xs md:text-sm"
+            >
+              Anterior
+            </button>
+            <span className="text-gray-300 font-mono text-xs md:text-sm">
+              {currentIndex.toString().padStart(3, "0")} / {MAX_INDEX}
+            </span>
+            <button
+              onClick={() => navigate("next")}
+              className="px-2 md:px-4 py-1 md:py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors text-xs md:text-sm"
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
