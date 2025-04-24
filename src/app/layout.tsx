@@ -24,13 +24,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{ backgroundColor: 'var(--background)' }}
-      >
-        {children}
-      </body>
-    </html>
-  );
+		<html lang="en">
+			<body
+				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				style={{ backgroundColor: "var(--background)" }}
+				cz-shortcut-listen="true"
+			>
+				{children}
+			</body>
+		</html>
+	);
 }

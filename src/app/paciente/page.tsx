@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import DICOMViewerPaciente from "../Components/DICOMViewerPaciente";
+import dynamic from "next/dynamic";
+
+// Carga dinámica del componente para desactivar SSR
+const DICOMViewerPaciente = dynamic(
+	() => import("../Components/DICOMViewerPaciente"),
+	{ ssr: false }
+);
 
 interface Study {
 	study_uid: string;
@@ -16,7 +22,7 @@ export default function Home() {
 	const [studies, setStudies] = useState<Study[]>([]);
 	const [selectedStudyUID, setSelectedStudyUID] = useState<string>("");
 
-	// Fetch studies on mount
+	// Carga la lista de estudios al montar el componente
 	useEffect(() => {
 		async function fetchStudies() {
 			try {
@@ -34,7 +40,7 @@ export default function Home() {
 		fetchStudies();
 	}, []);
 
-	// Share image handler
+	// Compartir imagen renderizada por el visor DICOM
 	const handleShareImage = () => {
 		const container = viewerContainerRef.current;
 		if (!container) return;
@@ -70,7 +76,7 @@ export default function Home() {
 		);
 	};
 
-	// Share link to doctor handler
+	// Compartir enlace para el médico
 	const handleShareLinkToDoctor = async () => {
 		const shareData: ShareData = {
 			title: "Enlace para Doctor",
@@ -98,18 +104,7 @@ export default function Home() {
 			<header className="bg-gray-800 p-4 flex justify-between items-center w-full">
 				<h1 className="text-2xl font-bold text-blue-500">Expediente Digno</h1>
 			</header>
-
-			{/* Patient Info */}
-			<div className="bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg w-full">
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
-					<div>
-						<h2 className="text-gray-400 text-sm mb-1">Nombre del Paciente</h2>
-						<p className="text-white text-lg">Juan Pérez</p>
-					</div>
-				</div>
-			</div>
-
-			{/* Study Selector */}
+			{/* Selector de estudios */}
 			<div className="bg-gray-800 p-4 m-4 rounded-lg">
 				<label
 					htmlFor="studySelect"
@@ -133,41 +128,31 @@ export default function Home() {
 					))}
 				</select>
 			</div>
-
-			{/* Main Area */}
+			{/* Contenedor del visor */}
 			<div
-				className="flex flex-col gap-4 w-full m-4"
 				ref={viewerContainerRef}
+				className="flex-1 m-4"
 			>
-				{/* DICOM Viewer Container */}
 				{selectedStudyUID && (
 					<DICOMViewerPaciente studyUID={selectedStudyUID} />
 				)}
-
-				{/* Action Buttons */}
-				<div className="flex w-full justify-end p-5 gap-2">
-					<button
-						onClick={handleShareImage}
-						className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-					>
-						Compartir Imagen
-					</button>
-					<button
-						onClick={handleShareLinkToDoctor}
-						className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-					>
-						Compartir a Doctor
-					</button>
-				</div>
-
-				{/* Interpretation Panel */}
-				<div className="w-full bg-gray-800 rounded-lg p-4">
-					<h2 className="text-white text-lg font-semibold mb-4">
-						Interpretación
-					</h2>
-					<p className="text-gray-300">{/* Interpretación aquí */}</p>
-				</div>
 			</div>
+			{/* Botones de acción */}
+			<div className="flex w-full justify-end p-5 gap-2">
+				<button
+					onClick={handleShareImage}
+					className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+				>
+					Compartir Imagen
+				</button>
+				<button
+					onClick={handleShareLinkToDoctor}
+					className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+				>
+					Compartir a Doctor
+				</button>
+			</div>
+			   
 		</div>
 	);
 }
