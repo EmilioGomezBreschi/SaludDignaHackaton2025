@@ -98,6 +98,27 @@ export default function Home() {
 		}
 	};
 
+	const handleShareLinkToDFamiliar = async () => {
+		const shareData: ShareData = {
+			title: "Enlace para Doctor",
+			url: "http://localhost:3000/Doctor",
+		};
+		if (navigator.share) {
+			try {
+				await navigator.share(shareData);
+			} catch (err) {
+				console.error("Error compartiendo enlace:", err);
+			}
+		} else {
+			try {
+				await navigator.clipboard.writeText(shareData.url ?? "");
+				alert("Enlace copiado al portapapeles");
+			} catch {
+				console.error("Error copiando al portapapeles");
+			}
+		}
+	};
+
 	return (
 		<div className="flex flex-col min-h-screen bg-gray-900 overflow-x-hidden w-full">
 			{/* Header */}
@@ -150,6 +171,12 @@ export default function Home() {
 					className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
 				>
 					Compartir a Doctor
+				</button>
+				<button
+					onClick={handleShareLinkToDFamiliar}
+					className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+				>
+					Compartir a Familiar
 				</button>
 			</div>
 			   
