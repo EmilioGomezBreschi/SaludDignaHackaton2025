@@ -11,7 +11,7 @@ import * as cornerstoneTools from "cornerstone-tools";
 import Hammer from "hammerjs";
 
 const MIN_INDEX = 0;
-const MAX_INDEX = 360;
+const MAX_INDEX = 7;
 const BASE_URL = "http://localhost:3000/Imagenes";
 
 interface DICOMViewerProps {
@@ -181,7 +181,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
   }, [currentIndex, onImageIndexChange]);
 
   return (
-    <div className="h-full w-full bg-gray-800">
+    <div className="w-full h-full">
       {/* Visor DICOM */}
       <div ref={imageRef} className="w-full h-full bg-black" />
 
