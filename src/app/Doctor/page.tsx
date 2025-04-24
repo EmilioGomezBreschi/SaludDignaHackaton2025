@@ -155,7 +155,7 @@ export default function Home() {
             </div>
             <div>
               <h2 className="text-gray-400 text-sm">Tipo de Estudio</h2>
-              <p className="text-white">Radiografía de Tórax</p>
+              <p className="text-white">Tomografia de cerebro</p>
             </div>
           </div>
         </div>
