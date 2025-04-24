@@ -2,6 +2,10 @@
 
 import DICOMViewer from "../Components/DICOMViewer";
 import { useState } from "react";
+import JSZip from 'jszip';
+
+const MAX_INDEX = 7;
+const BASE_URL = "http://localhost:3000/Imagenes";
 
 export default function Home() {
   const [viewCount, setViewCount] = useState(1);
@@ -9,6 +13,8 @@ export default function Home() {
   const [activeTool, setActiveTool] = useState("Pan");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const [newAnnotations, setNewAnnotations] = useState("");
+  const [previousAnnotations, setPreviousAnnotations] = useState("Tienes un cerebro inflamado y un tumor en el cerebro. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos. Lorem ipsum dolor sit amet, consectetur adipisicing elit.");
 
   const viewTypes = [
     { id: "axial", label: "Axial" },
@@ -66,6 +72,42 @@ export default function Home() {
         return 'col-span-1';
       default:
         return 'col-span-1';
+    }
+  };
+
+  const handleSaveAnnotations = async () => {
+    if (!newAnnotations.trim()) return;
+
+    try {
+      const zip = new JSZip();
+      
+      // Agregar archivo de anotaciones
+      zip.file("anotaciones.txt", `Anotaciones anteriores:\n${previousAnnotations}\n\nNuevas anotaciones:\n${newAnnotations}\n\nFecha: ${new Date().toISOString()}\nÍndice de imagen: ${currentImageIndex}`);
+
+      // Agregar archivos DICOM
+      for (let i = 0; i <= MAX_INDEX; i++) {
+        const response = await fetch(`${BASE_URL}/${i.toString().padStart(1, "0")}.dcm`);
+        const blob = await response.blob();
+        zip.file(`dicom_${i.toString().padStart(3, "0")}.dcm`, blob);
+      }
+
+      // Generar el archivo ZIP
+      const content = await zip.generateAsync({ type: "blob" });
+      
+      // Crear enlace para descargar
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `estudio_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Limpiar
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al crear el archivo ZIP:", error);
+      alert("Error al guardar los archivos. Por favor, intente nuevamente.");
     }
   };
 
@@ -155,7 +197,7 @@ export default function Home() {
             </div>
             <div>
               <h2 className="text-gray-400 text-sm">Tipo de Estudio</h2>
-              <p className="text-white">Tomografia de cerebro</p>
+              <p className="text-white">Radiografía de Tórax</p>
             </div>
           </div>
         </div>
@@ -292,9 +334,7 @@ export default function Home() {
               <div>
                 <h2 className="text-white text-lg font-semibold mb-4">Interpretación anterior</h2>
                 <p className="text-white text-sm">
-                  Tienes un cerebro inflamado y un tumor en el cerebro.
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
-                  Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                  {previousAnnotations}
                 </p>
               </div>
               <div>
@@ -302,9 +342,14 @@ export default function Home() {
                 <textarea
                   className="w-full h-32 bg-gray-700 text-white rounded-lg p-3 resize-none"
                   placeholder="Escribe tus anotaciones aquí..."
+                  value={newAnnotations}
+                  onChange={(e) => setNewAnnotations(e.target.value)}
                 />
                 <div className="mt-4 flex justify-end">
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                  <button 
+                    onClick={handleSaveAnnotations}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
                     Guardar anotaciones
                   </button>
                 </div>
