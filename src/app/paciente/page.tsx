@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 
 // Carga dinámica del componente para desactivar SSR
 const DICOMViewerPaciente = dynamic(
@@ -21,6 +22,7 @@ export default function Home() {
 	const viewerContainerRef = useRef<HTMLDivElement>(null);
 	const [studies, setStudies] = useState<Study[]>([]);
 	const [selectedStudyUID, setSelectedStudyUID] = useState<string>("");
+	const router = useRouter();
 
 	// Carga la lista de estudios al montar el componente
 	useEffect(() => {
@@ -98,11 +100,13 @@ export default function Home() {
 		}
 	};
 
+	// Compartir enlace para familiar (modificado)
 	const handleShareLinkToDFamiliar = async () => {
 		const shareData: ShareData = {
-			title: "Enlace para Doctor",
-			url: "http://localhost:3000/Doctor",
+			title: "Enlace para Familiar",
+			url: `${window.location.origin}/paciente/${selectedStudyUID}`,
 		};
+
 		if (navigator.share) {
 			try {
 				await navigator.share(shareData);
